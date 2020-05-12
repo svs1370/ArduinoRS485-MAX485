@@ -17,23 +17,24 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "RS485.h"
+#include "RS485_MAX485.h"
 
-RS485Class::RS485Class(HardwareSerial& hwSerial, int txPin, int dePin, int rePin) :
+RS485_MAX485Class::RS485_MAX485Class(HardwareSerial& hwSerial, int txPin, int dePin, int rePin) :
   _serial(&hwSerial),
   _txPin(txPin),
   _dePin(dePin),
   _rePin(rePin),
-  _transmisionBegun(false)
+  _transmissionBegun(false),
+  _transmissionDelay(650) // proper delay will be calculated based on baud rate in begin method
 {
 }
 
-void RS485Class::begin(unsigned long baudrate)
+void RS485_MAX485Class::begin(unsigned long baudrate)
 {
   begin(baudrate, SERIAL_8N1);
 }
 
-void RS485Class::begin(unsigned long baudrate, uint16_t config)
+void RS485_MAX485Class::begin(unsigned long baudrate, uint16_t config)
 {
   _baudrate = baudrate;
   _config = config;
@@ -48,12 +49,16 @@ void RS485Class::begin(unsigned long baudrate, uint16_t config)
     digitalWrite(_rePin, HIGH);
   }
 
-  _transmisionBegun = false;
+  _transmissionBegun = false;
+
+  // transmisison delay in us is the amount of time required to send 3.5 chars,
+  // which is equivalent to 3.5*11 bits in 8N1 mode, at the specified baud rate
+  _transmissionDelay = unsigned int ((1000000 * 3.5 * 11)/baudrate);
 
   _serial->begin(baudrate, config);
 }
 
-void RS485Class::end()
+void RS485_MAX485Class::end()
 {
   _serial->end();
 
@@ -68,29 +73,29 @@ void RS485Class::end()
   }
 }
 
-int RS485Class::available()
+int RS485_MAX485Class::available()
 {
   return _serial->available();
 }
 
-int RS485Class::peek()
+int RS485_MAX485Class::peek()
 {
   return _serial->peek();
 }
 
-int RS485Class::read(void)
+int RS485_MAX485Class::read(void)
 {
   return _serial->read();
 }
 
-void RS485Class::flush()
+void RS485_MAX485Class::flush()
 {
   return _serial->flush();
 }
 
-size_t RS485Class::write(uint8_t b)
+size_t RS485_MAX485Class::write(uint8_t b)
 {
-  if (!_transmisionBegun) {
+  if (!_transmissionBegun) {
     setWriteError();
     return 0;
   }
@@ -98,22 +103,22 @@ size_t RS485Class::write(uint8_t b)
   return _serial->write(b);
 }
 
-RS485Class::operator bool()
+RS485_MAX485Class::operator bool()
 {
   return true;
 }
 
-void RS485Class::beginTransmission()
+void RS485_MAX485Class::beginTransmission()
 {
   if (_dePin > -1) {
     digitalWrite(_dePin, HIGH);
-    delayMicroseconds(50);
+    delayMicroseconds(_transmissionDelay);
   }
 
-  _transmisionBegun = true;
+  _transmissionBegun = true;
 }
 
-void RS485Class::endTransmission()
+void RS485_MAX485Class::endTransmission()
 {
   _serial->flush();
 
@@ -122,24 +127,24 @@ void RS485Class::endTransmission()
     digitalWrite(_dePin, LOW);
   }
 
-  _transmisionBegun = false;
+  _transmissionBegun = false;
 }
 
-void RS485Class::receive()
+void RS485_MAX485Class::receive()
 {
   if (_rePin > -1) {
     digitalWrite(_rePin, LOW);
   }
 }
 
-void RS485Class::noReceive()
+void RS485_MAX485Class::noReceive()
 {
   if (_rePin > -1) {
     digitalWrite(_rePin, HIGH);
   }
 }
 
-void RS485Class::sendBreak(unsigned int duration)
+void RS485_MAX485Class::sendBreak(unsigned int duration)
 {
   _serial->flush();
   _serial->end();
@@ -149,7 +154,7 @@ void RS485Class::sendBreak(unsigned int duration)
   _serial->begin(_baudrate, _config);
 }
 
-void RS485Class::sendBreakMicroseconds(unsigned int duration)
+void RS485_MAX485Class::sendBreakMicroseconds(unsigned int duration)
 {
   _serial->flush();
   _serial->end();
@@ -159,11 +164,11 @@ void RS485Class::sendBreakMicroseconds(unsigned int duration)
   _serial->begin(_baudrate, _config);
 }
 
-void RS485Class::setPins(int txPin, int dePin, int rePin)
+void RS485_MAX485Class::setPins(int txPin, int dePin, int rePin)
 {
   _txPin = txPin;
   _dePin = dePin;
   _rePin = rePin;
 }
 
-RS485Class RS485(SERIAL_PORT_HARDWARE, RS485_DEFAULT_TX_PIN, RS485_DEFAULT_DE_PIN, RS485_DEFAULT_RE_PIN);
+RS485_MAX485Class RS485_MAX485(SERIAL_PORT_HARDWARE, RS485_DEFAULT_TX_PIN, RS485_DEFAULT_DE_PIN, RS485_DEFAULT_RE_PIN);

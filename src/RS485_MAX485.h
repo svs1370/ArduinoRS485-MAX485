@@ -17,8 +17,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _RS485_H_INCLUDED
-#define _RS485_H_INCLUDED
+#ifndef _RS485_MAX485_H_INCLUDED
+#define _RS485_MAX485_H_INCLUDED
 
 #include <Arduino.h>
 
@@ -36,9 +36,9 @@
 #define RS485_DEFAULT_RE_PIN A5
 #endif
 
-class RS485Class : public Stream {
+class RS485_MAX485Class : public Stream {
   public:
-    RS485Class(HardwareSerial& hwSerial, int txPin, int dePin, int rePin);
+    RS485_MAX485Class(HardwareSerial& hwSerial, int txPin, int dePin, int rePin);
 
     virtual void begin(unsigned long baudrate);
     virtual void begin(unsigned long baudrate, uint16_t config);
@@ -67,11 +67,12 @@ class RS485Class : public Stream {
     int _dePin;
     int _rePin;
 
-    bool _transmisionBegun;
+    bool _transmissionBegun;
     unsigned long _baudrate;
     uint16_t _config;
+    unsigned int _transmissionDelay; // in microseconds (us)
 };
 
-extern RS485Class RS485;
+extern RS485_MAX485Class RS485_MAX485;
 
 #endif
