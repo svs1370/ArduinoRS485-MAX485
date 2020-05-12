@@ -2,12 +2,21 @@
 
 image:https://github.com/arduino-libraries/ArduinoRS485/workflows/Compile%20Examples/badge.svg["Compile Examples Status", link="https://github.com/arduino-libraries/ArduinoRS485/actions?workflow=Compile+Examples"] image:https://github.com/arduino-libraries/ArduinoRS485/workflows/Spell%20Check/badge.svg["Spell Check Status", link="https://github.com/arduino-libraries/ArduinoRS485/actions?workflow=Spell+Check"]
 
-Enables sending and receiving data using the RS485 standard with RS485 shields, like the MKR 485 Shield.
-
-This library supports the Maxim Integrated MAX3157 and equivalent chipsets.
+Enables sending and receiving data using the RS485 standard with RS485-to-UART adapter based on MAX485 chip. It is designed for ArduinoModbus-RTU-MAX485 library.
 
 For more information about this library please visit us at
 http://www.arduino.cc/en/Reference/ArduinoRS485
+
+== Differences from original ArduinoRS485 ==
+
+This library modifies transmission initiation functions to make sure that proper delays, based on current port speed, are applied between the moment, when DE/~RE pin of RS485-to-UART module is set to DE=HIGH/~RE=HIGH (write mode), and the moment, when actual write to UART Serial port takes place.
+
+When initiating transmission, the original ArduinoModbus library (which is designed for a specific Arduino shield and uses RS485 class as UART-to-RS485 abstraction) applies hardcoded 50us delay regardless of port speed, which resulted in garbled communication over RS485 in a setup with generic RS485-to-UART module based on MAX485 chip. This is "mysteriously" in line with the strict Modbus standard requirement to maintain at least 3.5 delay between frames (with an exception of fixed delay of 1750us for port speeds of 19200 and higher).
+
+Based on extended study it was discovered, that a delay equivalent of time interval required to transmit 3-3.5 chars at the current port speed is enough avoid transmission errors in majority of tests. This delay is set by "begin" method of the class and then used by "beginTransmission".
+
+Tested with Arduino Uno slave, MAX485 based RS485-to-UART adapter and a Modbus master device running original libmodbus library.
+
 
 == License ==
 
