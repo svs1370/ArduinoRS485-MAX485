@@ -169,6 +169,16 @@ void RS485_MAX485Class::setPins(int txPin, int dePin, int rePin)
   _txPin = txPin;
   _dePin = dePin;
   _rePin = rePin;
+
+  if ( _dePin > -1 ) {
+    pinMode( _dePin, OUTPUT);
+    digitalWrite( _dePin, LOW);
+  }
+
+  if ( _rePin > -1 ) {
+    pinMode( _rePin, OUTPUT);
+    digitalWrite( _rePin, LOW);
+  }
 }
 
 RS485_MAX485Class RS485_MAX485(SERIAL_PORT_HARDWARE, RS485_DEFAULT_TX_PIN, RS485_DEFAULT_DE_PIN, RS485_DEFAULT_RE_PIN);
