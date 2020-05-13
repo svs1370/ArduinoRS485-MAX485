@@ -53,7 +53,7 @@ void RS485_MAX485Class::begin(unsigned long baudrate, uint16_t config)
 
   // transmisison delay in us is the amount of time required to send 3.5 chars,
   // which is equivalent to 3.5*11 bits in 8N1 mode, at the specified baud rate
-  _transmissionDelay = unsigned int ((1000000 * 3.5 * 11)/baudrate);
+  _transmissionDelay = (unsigned int)((1000000 * 3.5 * 11)/baudrate);
 
   _serial->begin(baudrate, config);
 }
